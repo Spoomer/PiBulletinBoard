@@ -23,7 +23,7 @@ namespace PiBulletinBoard.Services
         [JSInvokable]
         public void _Callback(string callbackId, string[] arguments)
         {
-            if (_callbacks.TryGetValue(callbackId, out Action<string[]> callback))
+            if (_callbacks.TryGetValue(callbackId, out Action<string[]>? callback))
             {
                 _callbacks.Remove(callbackId);
                 callback(arguments);
