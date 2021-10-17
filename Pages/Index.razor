@@ -9,6 +9,9 @@
     <div class="card">
         <div class="card-body">
             Hello, @_user.Username!
+            <label>Your Message:</label><input type="text" @bind-value="_paymentData.Memo"></input>
+            <label>Your fee:</label>@_paymentData.Amount Pi
+            <button class="btn btn-primary" @onclick="SendMessage">Send</button>
         </div>
     </div>
 }
@@ -18,21 +21,29 @@
     bool _userConfirmed;
     public static object CreateDotNetObjectRefSyncObj = new object();
     User _user = new();
+    PaymentData _paymentData = new();
     async Task Authenticate()
     {
         var dotNetReference = DotNetObjectReference.Create(this);
-        //var response = await Callbacker.InvokeJS<AuthResult>("Pi.authenticate",_scopes);
-        //var payment = response.CallbackerResponse?.GetArg<Payment>(0);
         AuthResult response = await JS.InvokeAsync<AuthResult>("piAuthenticateProxy", dotNetReference,_scopes,"confirmPayment");
         _user = await Request.GetUser(response.AccessToken);
         if (_user.Uid == response.User.Uid)
         {
             _userConfirmed = true;
+            _paymentData.Amount = 0.1M;
+            _paymentData.Metadata = _user;
         }
     }    
-    [JSInvokable("confirmPayment")] // This is required in order to JS be able to execute it
+    [JSInvokable("confirmPayment")]
     void ConfirmPayment(Payment payment)
     {
         Console.WriteLine("Do Something");
+    }
+
+    async Task SendMessage()
+    {
+        PaymentCallbacks paymentCallbacks = new(Request);
+        await JS.InvokeVoidAsync("piCreatePayment",_paymentData,paymentCallbacks);
+
     }
 }
