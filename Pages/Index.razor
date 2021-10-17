@@ -1,5 +1,25 @@
 @page "/"
+@inject IJSRuntime JS
+@inject JSCallbacker Callbacker
 
 <h1>Hello, pi network!</h1>
+<button>Authenticate</button>
 
+@code{
+    string[] _scopes = new [] {"user", "payment"};
+    public static object CreateDotNetObjectRefSyncObj = new object();
+    async Task Authenticate()
+    {
+        var response = await Callbacker.InvokeJS("Pi.authenticate",_scopes);
+        var payment = response.GetArg<Payment>(0);
+        if (payment is not null)
+        {
+            ConfirmPayment(payment);
+        }
+    }    
 
+    void ConfirmPayment(Payment payment)
+    {
+        Console.WriteLine("Do Something");
+    }
+}
