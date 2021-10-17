@@ -75,11 +75,11 @@ namespace PiBulletinBoard.Api
                 else return new Payment();
             }
         }
-        public async Task<User> GetUser(string Id)
+        public async Task<User> GetUser(string accessToken)
         {
             string url = $"{BaseUrl}/me";
             HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, url);
-            message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Id);
+            message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             using (HttpResponseMessage responseMessage = await Apihelper.ApiClient.SendAsync(message))
             {
                 if (responseMessage.IsSuccessStatusCode)
