@@ -30,23 +30,17 @@ namespace PiBulletinBoard.Services
             }
         }
 
-        public Task<CallbackerResponse> InvokeJS(string cmd, params object[] args)
+        public async Task<JSResponse> InvokeJS<T>(string cmd, params object[] args)
         {
+            JSResponse response = new();
             var t = new TaskCompletionSource<CallbackerResponse>();
-            _InvokeJS((string[] arguments) => {
+            response.Response = await _InvokeJS<T>((string[] arguments) => {
                 t.TrySetResult(new CallbackerResponse(arguments));
             }, cmd, args);
-            return t.Task;
+            response.CallbackerResponse = await t.Task;
+            return response;
         }
-
-        public void InvokeJS(Action<CallbackerResponse> callback, string cmd, params object[] args)
-        {
-            _InvokeJS((string[] arguments) => {
-                callback(new CallbackerResponse(arguments));
-            }, cmd, args);
-        }
-
-        private void _InvokeJS(Action<string[]> callback, string cmd, object[] args)
+        private async Task<string> _InvokeJS<T>(Action<string[]> callback, string cmd, object[] args)
         {
             string callbackId;
             do
@@ -54,7 +48,8 @@ namespace PiBulletinBoard.Services
                 callbackId = Guid.NewGuid().ToString();
             } while (_callbacks.ContainsKey(callbackId));
             _callbacks[callbackId] = callback;
-            _js.InvokeVoidAsync("window._callbacker", _this, "_Callback", callbackId, cmd, JsonSerializer.Serialize(args));
+            var result = await _js.InvokeAsync<T>("window._callbacker", new Object[] {_this, "_Callback", callbackId, cmd, JsonSerializer.Serialize(args)});
+            return JsonSerializer.Serialize<T>(result);
         }
     }
 }

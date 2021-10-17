@@ -15,4 +15,10 @@ namespace PiBulletinBoard.Services
             return JsonSerializer.Deserialize<T>(arguments[i]);
         }
     }
+
+    public class JSResponse
+    {
+        public CallbackerResponse? CallbackerResponse { get; set; }
+        public string Response { get; set; } ="";
+    }
 }

@@ -36,6 +36,15 @@
     <script>Pi.init({ version: "2.0", sandbox: true })</script>
 
     <script>
+        window.piAuthenticateProxy = (instance, scopes, callbackMethod) => {
+
+    // Execute function that will do the actual job
+        return Pi.authenticate(scopes, result => {
+        // Invoke the C# callback method passing the result as parameter
+        instance.invokeMethodAsync(callbackMethod, result);
+        });
+
+}
         window._callbacker = function(callbackObjectInstance, callbackMethod, callbackId, cmd, args){
             var parts = cmd.split('.');
             var targetFunc = window;
@@ -52,7 +61,8 @@
                 for(var i in arguments) args.push(JSON.stringify(arguments[i]));
                 callbackObjectInstance.invokeMethodAsync(callbackMethod, callbackId, args); 
             });
-            targetFunc.apply(parentObject, args);
+            var result = targetFunc.apply(parentObject, args);
+            return result;
         };
     </script>
 </body>

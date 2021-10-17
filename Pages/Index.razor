@@ -1,23 +1,36 @@
 @page "/"
 @inject IJSRuntime JS
-@inject JSCallbacker Callbacker
+@inject ApiRequest Request
 
 <h1>Hello, pi network!</h1>
-<button>Authenticate</button>
+<button class="btn btn-primary" @onclick="Authenticate">Authenticate</button>
+@if(_userConfirmed)
+{
+    <div class="card">
+        <div class="card-body">
+            Hello, @_user.Username!
+        </div>
+    </div>
+}
 
 @code{
-    string[] _scopes = new [] {"user", "payment"};
+    string[] _scopes = new [] {"username", "payments"};
+    bool _userConfirmed;
     public static object CreateDotNetObjectRefSyncObj = new object();
+    User _user = new();
     async Task Authenticate()
     {
-        var response = await Callbacker.InvokeJS("Pi.authenticate",_scopes);
-        var payment = response.GetArg<Payment>(0);
-        if (payment is not null)
+        var dotNetReference = DotNetObjectReference.Create(this);
+        //var response = await Callbacker.InvokeJS<AuthResult>("Pi.authenticate",_scopes);
+        //var payment = response.CallbackerResponse?.GetArg<Payment>(0);
+        AuthResult response = await JS.InvokeAsync<AuthResult>("piAuthenticateProxy", dotNetReference,_scopes,"confirmPayment");
+        _user = await Request.GetUser(response.AccessToken);
+        if (_user.Uid == response.User.Uid)
         {
-            ConfirmPayment(payment);
+            _userConfirmed = true;
         }
     }    
-
+    [JSInvokable("confirmPayment")] // This is required in order to JS be able to execute it
     void ConfirmPayment(Payment payment)
     {
         Console.WriteLine("Do Something");

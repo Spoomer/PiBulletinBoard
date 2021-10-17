@@ -29,6 +29,7 @@ namespace PiBulletinBoard
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddSingleton<ApiHelper>();
+            services.AddSingleton<ApiRequest>();
             services.AddScoped<Services.JSCallbacker>(); 
         }
 
