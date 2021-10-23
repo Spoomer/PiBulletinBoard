@@ -7,6 +7,7 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,6 +17,7 @@
     <link href="css/site.css" rel="stylesheet" />
     <link href="PiBulletinBoard.styles.css" rel="stylesheet" />
 </head>
+
 <body>
     <component type="typeof(App)" render-mode="ServerPrerendered" />
 
@@ -34,5 +36,30 @@
 
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <script>Pi.init({ version: "2.0", sandbox: true })</script>
+
+    <script>
+        window.piAuthenticate = (instance, scopes, callbackMethod) => {
+
+            // Execute function that will do the actual job
+            return Pi.authenticate(scopes, result => {
+                // Invoke the C# callback method passing the result as parameter
+                instance.invokeMethodAsync(callbackMethod, result);
+            });
+
+        };
+
+        window.piCreatePayment = (instance, paymentData) => {
+
+            Pi.createPayment(paymentData,{
+                onReadyForServerApproval: function(paymentId) {instance.invokeMethodAsync("serverApproval",paymentId)},
+                onReadyForServerCompletion: function(paymentId,txid) {instance.invokeMethodAsync("serverCompletion",paymentId,txid)},
+                onCancel:function(paymentId) {instance.invokeMethodAsync("cancel",paymentId)},
+                onError: function(error,payment) {instance.invokeMethodAsync("error",error,payment)}
+                });
+        };
+
+        
+    </script>
 </body>
+
 </html>

@@ -29,6 +29,8 @@ namespace PiBulletinBoard
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddSingleton<ApiHelper>();
+            services.AddSingleton<ApiRequest>();
+            services.AddScoped<Services.JSCallbacker>(); 
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

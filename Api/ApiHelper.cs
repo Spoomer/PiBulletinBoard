@@ -19,7 +19,7 @@ namespace PiBulletinBoard.Api
             ApiClient = new();
             ApiClient.DefaultRequestHeaders.Accept.Clear();
             ApiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            ApiClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",Key);
+            ApiClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Key",Key);
         }
         
         void ReadKey(string path)

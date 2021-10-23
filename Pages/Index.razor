@@ -1,5 +1,52 @@
 @page "/"
+@inject IJSRuntime JS
+@inject ApiRequest Request
 
 <h1>Hello, pi network!</h1>
+<button class="btn btn-primary" @onclick="Authenticate">Authenticate</button>
+@if(_userConfirmed)
+{
+    <div class="card">
+        <div class="card-body">
+            Hello, @_user.Username!
+            <label>Your Message:</label><input type="text" @bind-value="_paymentData.Memo"></input>
+            <label>Your fee:</label>@_paymentData.Amount Pi
+            <button class="btn btn-primary" @onclick="SendMessage">Send</button>
+        </div>
+    </div>
+}
 
+@code{
+    string[] _scopes = new [] {"username", "payments"};
+    bool _userConfirmed;
+    public static object CreateDotNetObjectRefSyncObj = new object();
+    User _user = new();
+    PaymentData _paymentData = new();
+    
+    async Task Authenticate()
+    {
+        var dotNetReference = DotNetObjectReference.Create(this);
+        AuthResult response = await JS.InvokeAsync<AuthResult>("piAuthenticate", dotNetReference,_scopes,"confirmPayment");
+        _user = await Request.GetUser(response.AccessToken);
+        if (_user.Uid == response.User.Uid)
+        {
+            _userConfirmed = true;
+            _paymentData.Amount = 0.1M;
+            _paymentData.Metadata = _user;
+        }
+    }    
+    [JSInvokable("confirmPayment")]
+    public async Task ConfirmPayment(Payment payment)
+    {
+        PaymentCallbacks paymentCallbacks = new(Request);
+        var completedPayment = await paymentCallbacks.OnReadyForServerCompletion(payment.Identifier,payment.Transaction.Txid);
+    }
 
+    public async Task SendMessage()
+    {
+        PaymentCallbacks paymentCallbacks = new(Request);
+        var dotNetReference = DotNetObjectReference.Create(paymentCallbacks);
+        await JS.InvokeVoidAsync("piCreatePayment",dotNetReference,_paymentData);
+
+    }
+}
