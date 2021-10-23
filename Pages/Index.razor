@@ -22,10 +22,11 @@
     public static object CreateDotNetObjectRefSyncObj = new object();
     User _user = new();
     PaymentData _paymentData = new();
+    
     async Task Authenticate()
     {
         var dotNetReference = DotNetObjectReference.Create(this);
-        AuthResult response = await JS.InvokeAsync<AuthResult>("piAuthenticateProxy", dotNetReference,_scopes,"confirmPayment");
+        AuthResult response = await JS.InvokeAsync<AuthResult>("piAuthenticate", dotNetReference,_scopes,"confirmPayment");
         _user = await Request.GetUser(response.AccessToken);
         if (_user.Uid == response.User.Uid)
         {
@@ -43,7 +44,8 @@
     async Task SendMessage()
     {
         PaymentCallbacks paymentCallbacks = new(Request);
-        await JS.InvokeVoidAsync("piCreatePayment",_paymentData,paymentCallbacks);
+        var dotNetReference = DotNetObjectReference.Create(paymentCallbacks);
+        await JS.InvokeVoidAsync("piCreatePayment",dotNetReference,_paymentData);
 
     }
 }
