@@ -61,10 +61,14 @@ namespace PiBulletinBoard.Api
                 else return new Payment();
             }
         }
-        public async Task<Payment> PostCompletePayment(string paymentId)
+        public async Task<Payment> PostCompletePayment(string paymentId,string txid)
         {
             string url = $"{BaseUrl}/payments/{paymentId}/complete";
-            using (HttpResponseMessage message = await Apihelper.ApiClient.PostAsync(url, new StringContent("")))
+            HttpContent body = new FormUrlEncodedContent(
+                        new List<KeyValuePair<string?,string?>>() 
+                        {new KeyValuePair<string?,string?>("txid",txid)});
+
+            using (HttpResponseMessage message = await Apihelper.ApiClient.PostAsync(url, body))
             {
                 if (message.IsSuccessStatusCode)
                 {

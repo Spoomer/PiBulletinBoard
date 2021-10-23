@@ -36,12 +36,13 @@
         }
     }    
     [JSInvokable("confirmPayment")]
-    void ConfirmPayment(Payment payment)
+    public async Task ConfirmPayment(Payment payment)
     {
-        Console.WriteLine("Do Something");
+        PaymentCallbacks paymentCallbacks = new(Request);
+        var completedPayment = await paymentCallbacks.OnReadyForServerCompletion(payment.Identifier,payment.Transaction.Txid);
     }
 
-    async Task SendMessage()
+    public async Task SendMessage()
     {
         PaymentCallbacks paymentCallbacks = new(Request);
         var dotNetReference = DotNetObjectReference.Create(paymentCallbacks);

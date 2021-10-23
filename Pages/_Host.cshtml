@@ -49,12 +49,13 @@
         };
 
         window.piCreatePayment = (instance, paymentData) => {
+
             Pi.createPayment(paymentData,{
-                onReadyForServerApproval: await instance.invokeMethodAsync("serverApproval",paymentId),
-                onReadyForServerCompletion: await instance.invokeMethodAsync("serverCompletion",paymentId,txid),
-                onCancel: await instance.invokeMethodAsync("cancel",paymentId),
-                onError: await instance.invokeMethodAsync("error",error,payment),
-            });
+                onReadyForServerApproval: function(paymentId) {instance.invokeMethodAsync("serverApproval",paymentId)},
+                onReadyForServerCompletion: function(paymentId,txid) {instance.invokeMethodAsync("serverCompletion",paymentId,txid)},
+                onCancel:function(paymentId) {instance.invokeMethodAsync("cancel",paymentId)},
+                onError: function(error,payment) {instance.invokeMethodAsync("error",error,payment)}
+                });
         };
 
         

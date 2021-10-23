@@ -15,14 +15,14 @@ namespace PiBulletinBoard.Data
             _apiRequest = apiRequest;
         }
         [JSInvokable("serverApproval")]
-        public async Task OnReadyForServerApproval(string paymentId)
+        public async Task<Payment> OnReadyForServerApproval(string paymentId)
         {
-            await _apiRequest.PostApprovedPayment(paymentId);
+            return await _apiRequest.PostApprovedPayment(paymentId);
         }
         [JSInvokable("serverCompletion")]
-        public async Task OnReadyForServerCompletion(string paymentId, string txid)
+        public async Task<Payment> OnReadyForServerCompletion(string paymentId, string txid)
         {
-            await _apiRequest.PostCompletePayment(paymentId);
+            return await _apiRequest.PostCompletePayment(paymentId,txid);
         }
         [JSInvokable("cancel")]
         public void OnCancel(string paymentId)
