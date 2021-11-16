@@ -13,10 +13,12 @@ namespace PiBulletinBoard.Api
     public class ApiRequest
     {
         public string BaseUrl { get; set; }
+        public string TestBaseUrl { get; set; }
         public ApiHelper Apihelper { get; set; }
         public ApiRequest(IConfiguration configuration, ApiHelper apiHelper)
         {
             BaseUrl = configuration.GetValue<string>("ApiUrl");
+            TestBaseUrl = configuration.GetValue<string>("ApiTestUrl");
             Apihelper = apiHelper;
         }
 
@@ -61,11 +63,11 @@ namespace PiBulletinBoard.Api
                 else return new Payment();
             }
         }
-        public async Task<Payment> PostCompletePayment(string paymentId,string txid)
+        public async Task<Payment> PostCompletePayment(string paymentId, string txid)
         {
             string url = $"{BaseUrl}/payments/{paymentId}/complete";
             HttpContent body = new FormUrlEncodedContent(
-                        new List<KeyValuePair<string?,string?>>() 
+                        new List<KeyValuePair<string?, string?>>()
                         {new KeyValuePair<string?,string?>("txid",txid)});
 
             using (HttpResponseMessage message = await Apihelper.ApiClient.PostAsync(url, body))
@@ -95,6 +97,17 @@ namespace PiBulletinBoard.Api
                 else return new User();
             }
 
+        }
+        public async Task<Transactions> GetTransactionsAsync(string userId)
+        {
+            string url = $"{TestBaseUrl}/accounts/{userId}/transactions";
+            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, url);
+            using (HttpResponseMessage responseMessage = await Apihelper.ApiClient.SendAsync(message))
+            {
+                Transactions? transactions = await responseMessage.Content.ReadFromJsonAsync<Transactions>();
+                if (transactions is null) transactions = new ();
+                return transactions;
+            }
         }
     }
 }

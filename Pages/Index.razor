@@ -15,13 +15,27 @@
         </div>
     </div>
 }
-
+<div class="card">
+    <div class="card-body">
+        @foreach (var transaction in _transactions.Embedded1.Records)
+        {
+            if (transaction.MemoType == "text")
+            {
+                <div class="alert">
+                    <p>Message from @transaction.SourceAccount at @transaction.CreatedAt </p>
+                    @transaction.Memo
+                </div>
+            }
+        }
+    </div>
+</div>
 @code{
     string[] _scopes = new [] {"username", "payments"};
     bool _userConfirmed;
     public static object CreateDotNetObjectRefSyncObj = new object();
     User _user = new();
     PaymentData _paymentData = new();
+    Transactions _transactions = new();
     
     async Task Authenticate()
     {
@@ -48,5 +62,9 @@
         var dotNetReference = DotNetObjectReference.Create(paymentCallbacks);
         await JS.InvokeVoidAsync("piCreatePayment",dotNetReference,_paymentData);
 
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        _transactions = await Request.GetTransactionsAsync("GAR3IVRCLU53YDTBLVHCMIN6NLDUBBJ4OKFKYUE6DCB4JR776JR2R7RU");
     }
 }
