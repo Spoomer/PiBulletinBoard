@@ -1,46 +1,80 @@
 @page "/"
 @inject IJSRuntime JS
 @inject ApiRequest Request
+<div class="card shadow p-3 mb-5 rounded">
+    <div class="card-body">
 
-<h1>Hello, pi network!</h1>
-<button class="btn btn-primary" @onclick="Authenticate">Authenticate</button>
-@if(_userConfirmed)
-{
-    <div class="card">
-        <div class="card-body">
-            Hello, @_user.Username!
-            <label>Your Message:</label><input type="text" @bind-value="_paymentData.Memo"></input>
-            <label>Your fee:</label>@_paymentData.Amount Pi
-            <button class="btn btn-primary" @onclick="SendMessage">Send</button>
+
+        @if (_userConfirmed)
+        {
+            <h1 class="card-title">Hello, @_user.Username!</h1>
+        }
+        else
+        {
+            <h1 class="card-title">Hello, pi network!</h1>
+        }
+
+        <div class="card shadow p-3 mb-5 rounded mt-4 ">
+            <div class="card-header">Send Message</div>
+            <div class="card-body">
+
+                @if (_userConfirmed)
+                {
+                    <label for="floatingInput">Your Message</label>
+                    <div class="input-group">
+                            
+                            <input id="floatingInput" class="form-control" type="text"
+                            @bind-value="_paymentData.Memo"></input>
+
+
+                        <span class="input-group-text">fee:</span>
+                        <span class="input-group-text">@_paymentData.Amount Pi</span>
+                    </div>
+
+                    <button class="btn btn-secondary mt-3" @onclick="SendMessage">Send Message</button>
+                }
+                else
+                {
+                    <p>Please authenticate to send a Message:</p>
+                    <button class="btn btn-primary" @onclick="Authenticate">Authenticate</button>
+                }
+            </div>
+        </div>
+
+        <div class="card mt-4 shadow p-3 mb-5 rounded">
+            <div class="card-body">
+                <h5 class="card-title">
+                    The Messages in the Blockchain
+                </h5>
+                <ul class="list-group list-group-flush">
+                    @foreach (var transaction in _transactions.Embedded1.Records.OrderByDescending(x => x.CreatedAt))
+                    {
+                        if (transaction.MemoType == "text")
+                        {
+                            <li class="list-group-item">
+                                <span class="badge rounded-pill bg-info text-dark">@transaction.CreatedAt</span>
+                                <p><i>Message from @transaction.SourceAccount</i> </p>
+                                <p>@transaction.Memo</p>
+                            </li>
+                        }
+                    }
+                </ul>
+            </div>
         </div>
     </div>
-}
-<div class="card">
-    <div class="card-body">
-        @foreach (var transaction in _transactions.Embedded1.Records)
-        {
-            if (transaction.MemoType == "text")
-            {
-                <div class="alert">
-                    <p>Message from @transaction.SourceAccount at @transaction.CreatedAt </p>
-                    @transaction.Memo
-                </div>
-            }
-        }
-    </div>
 </div>
-@code{
-    string[] _scopes = new [] {"username", "payments"};
+@code {
+    string[] _scopes = new[] { "username", "payments" };
     bool _userConfirmed;
     public static object CreateDotNetObjectRefSyncObj = new object();
     User _user = new();
     PaymentData _paymentData = new();
     Transactions _transactions = new();
-    
+
     async Task Authenticate()
     {
         var dotNetReference = DotNetObjectReference.Create(this);
-        AuthResult response = await JS.InvokeAsync<AuthResult>("piAuthenticate", dotNetReference,_scopes,"confirmPayment");
+        AuthResult response = await JS.InvokeAsync<AuthResult>("piAuthenticate", dotNetReference, _scopes, "confirmPayment");
         _user = await Request.GetUser(response.AccessToken);
         if (_user.Uid == response.User.Uid)
         {
@@ -48,19 +82,19 @@
             _paymentData.Amount = 0.1M;
             _paymentData.Metadata = _user;
         }
-    }    
+    }
     [JSInvokable("confirmPayment")]
     public async Task ConfirmPayment(Payment payment)
     {
         PaymentCallbacks paymentCallbacks = new(Request);
-        var completedPayment = await paymentCallbacks.OnReadyForServerCompletion(payment.Identifier,payment.Transaction.Txid);
+        var completedPayment = await paymentCallbacks.OnReadyForServerCompletion(payment.Identifier, payment.Transaction.Txid);
     }
 
     public async Task SendMessage()
     {
         PaymentCallbacks paymentCallbacks = new(Request);
         var dotNetReference = DotNetObjectReference.Create(paymentCallbacks);
-        await JS.InvokeVoidAsync("piCreatePayment",dotNetReference,_paymentData);
+        await JS.InvokeVoidAsync("piCreatePayment", dotNetReference, _paymentData);
 
     }
     protected override async Task OnInitializedAsync()
