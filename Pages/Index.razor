@@ -95,10 +95,17 @@
         PaymentCallbacks paymentCallbacks = new(Request);
         var dotNetReference = DotNetObjectReference.Create(paymentCallbacks);
         await JS.InvokeVoidAsync("piCreatePayment", dotNetReference, _paymentData);
-
     }
     protected override async Task OnInitializedAsync()
     {
+        await LoadMessages();
+    }
+    async Task LoadMessages()
+    {
         _transactions = await Request.GetTransactionsAsync("GAR3IVRCLU53YDTBLVHCMIN6NLDUBBJ4OKFKYUE6DCB4JR776JR2R7RU");
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await LoadMessages();
     }
 }
